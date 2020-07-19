@@ -18,6 +18,7 @@ State in this case is an abbreviation such as TX or NY.
 
 ### TODOS
 
+- Clean up bad bad dirty code: Add lib, remove code from main.rs, add test
 - Build project for distribution to osx
 - Write function to show latest data (by parsing dates in csv; currently relies on csv ordering)
 - Save the csv to disk and compare etag from headers to avoid extraneous request
