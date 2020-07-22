@@ -38,22 +38,41 @@ impl Config {
   }
 }
 
-pub async fn run(config: Config) -> Result<(), Box<dyn Error>> {
+async fn fetch_data() -> Result<String, reqwest::Error> {
   // send head request to determine if we should get the data
   let url = "https://d14wlfuexuxgcm.cloudfront.net/covid/rt.csv";
   let client = Client::new();
-  let csv_data = client.get(url).send().await?.text().await.unwrap();
+  client.get(url).send().await?.text().await
+}
+
+fn get_latest_record_for_state(csv_data: String, state: String) -> Option<Record> {
   let csv_data = csv_data.as_bytes();
   let mut rdr = csv::Reader::from_reader(csv_data);
   let mut last: Option<Record> = None;
   for result in rdr.deserialize() {
-    let record: Record = result?;
-    if record.region == config.state {
+    let record: Record = match result {
+      Ok(v) => v,
+      Err(_) => panic!("could not read csv data!"),
+    };
+    if record.region == state {
       last = Some(record);
     }
   }
+  last
+}
+
+pub async fn run(config: Config) -> Result<(), Box<dyn Error>> {
+  let csv_data = fetch_data().await?;
+  let last = get_latest_record_for_state(csv_data, config.state);
   if last.is_some() {
     println!("{:?}", last);
   };
   Ok(())
 }
+
+// #[cfg(test)]
+// mod tests {
+//   use super::*;
+//   #[test]
+//   fn
+// }
