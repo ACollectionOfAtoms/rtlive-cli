@@ -70,9 +70,16 @@ pub async fn run(config: Config) -> Result<(), Box<dyn Error>> {
   Ok(())
 }
 
-// #[cfg(test)]
-// mod tests {
-//   use super::*;
-//   #[test]
-//   fn
-// }
+#[cfg(test)]
+
+mod tests {
+  use super::*;
+  #[test]
+  fn gets_latest_record_for_state() {
+    let contents = String::from("\
+date,region,index,mean,median,lower_80,upper_80,infections,test_adjusted_positive,test_adjusted_positive_raw,positive,tests,new_tests,new_cases,new_deaths
+2020-03-02,ME,0,1.372039701105285,1.3567493753249258,1.1676226928373998,1.5628004513732852,52.729115945543,0.0,0.0,0.0,0.0,,,");
+    let d = get_latest_record_for_state(contents, String::from("ME")).unwrap();
+    assert_eq!(d.region, "ME");
+  }
+}
