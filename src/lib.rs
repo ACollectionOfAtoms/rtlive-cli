@@ -72,30 +72,22 @@ pub async fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
 fn pretty_summary(d: Record) -> String {
   // TODO: Error handling
+  let parse_or_unknown = |s: String| match s.parse::<f64>() {
+    Ok(v) => format!("{0:.2}", v),
+    Err(_) => String::from("Unknown"),
+  };
   format!(
     "Region: {region}
-Rt (mean): {rt}
+Rt: {rt}
 Infection Count: {infection_count}
 New Cases: {new_cases}
 New Deaths: {new_deaths}
 Date: {date}",
     region = d.region,
-    rt = match d.mean.parse::<f64>() {
-      Ok(v) => format!("{0:.2}", v),
-      Err(_) => String::from("Unknown"),
-    },
-    infection_count = match d.infections.parse::<f64>() {
-      Ok(v) => format!("{0:.2}", v),
-      Err(_) => String::from("Unknown"),
-    },
-    new_cases = match d.new_cases.parse::<f64>() {
-      Ok(v) => format!("{0:.2}", v),
-      Err(_) => String::from("Unknown"),
-    },
-    new_deaths = match d.new_deaths.parse::<f64>() {
-      Ok(v) => format!("{0:.2}", v),
-      Err(_) => String::from("Unknown"),
-    },
+    rt = parse_or_unknown(d.mean),
+    infection_count = parse_or_unknown(d.infections),
+    new_cases = parse_or_unknown(d.new_cases),
+    new_deaths = parse_or_unknown(d.new_deaths),
     date = d.date
   )
 }
