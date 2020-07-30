@@ -65,13 +65,42 @@ pub async fn run(config: Config) -> Result<(), Box<dyn Error>> {
   let csv_data = fetch_data().await?;
   let last = get_latest_record_for_state(csv_data, config.state);
   if last.is_some() {
-    println!("{:?}", last);
+    println!("{}", pretty_summary(last.unwrap()));
   };
   Ok(())
 }
 
-#[cfg(test)]
+fn pretty_summary(d: Record) -> String {
+  // TODO: Error handling
+  format!(
+    "Region: {region}
+Rt (mean): {rt}
+Infection Count: {infection_count}
+New Cases: {new_cases}
+New Deaths: {new_deaths}
+Date: {date}",
+    region = d.region,
+    rt = match d.mean.parse::<f64>() {
+      Ok(v) => format!("{0:.2}", v),
+      Err(_) => String::from("Unknown"),
+    },
+    infection_count = match d.infections.parse::<f64>() {
+      Ok(v) => format!("{0:.2}", v),
+      Err(_) => String::from("Unknown"),
+    },
+    new_cases = match d.new_cases.parse::<f64>() {
+      Ok(v) => format!("{0:.2}", v),
+      Err(_) => String::from("Unknown"),
+    },
+    new_deaths = match d.new_deaths.parse::<f64>() {
+      Ok(v) => format!("{0:.2}", v),
+      Err(_) => String::from("Unknown"),
+    },
+    date = d.date
+  )
+}
 
+#[cfg(test)]
 mod tests {
   use super::*;
   #[test]
@@ -81,5 +110,23 @@ date,region,index,mean,median,lower_80,upper_80,infections,test_adjusted_positiv
 2020-03-02,ME,0,1.372039701105285,1.3567493753249258,1.1676226928373998,1.5628004513732852,52.729115945543,0.0,0.0,0.0,0.0,,,");
     let d = get_latest_record_for_state(contents, String::from("ME")).unwrap();
     assert_eq!(d.region, "ME");
+  }
+
+  #[test]
+  fn pretty_summary_is_pretty() {
+    let contents = String::from("\
+date,region,index,mean,median,lower_80,upper_80,infections,test_adjusted_positive,test_adjusted_positive_raw,positive,tests,new_tests,new_cases,new_deaths
+2020-03-02,ME,0,1.372039701105285,1.3567493753249258,1.1676226928373998,1.5628004513732852,52.729115945543,0.0,0.0,0.0,0.0,,,");
+    let d = get_latest_record_for_state(contents, String::from("ME")).unwrap();
+    let pretty = pretty_summary(d);
+    assert_eq!(
+      pretty,
+      "Region: ME
+Rt (mean): 1.37
+Infection Count: 52.73
+New Cases: Unknown
+New Deaths: Unknown
+Date: 2020-03-02"
+    )
   }
 }
